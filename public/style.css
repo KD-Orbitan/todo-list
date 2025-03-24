@@ -1,21 +1,145 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+    min-height: 100vh;
 }
 
-input {
-    padding: 5px;
+.container {
+    max-width: 700px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+input[type="text"] {
+    padding: 12px;
+    flex: 1;
+    border: 2px solid #dfe6e9;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus {
+    border-color: #0984e3;
+    outline: none;
+}
+
+input[type="date"] {
+    padding: 10px;
+    border: 2px solid #dfe6e9;
+    border-radius: 8px;
+    font-size: 16px;
 }
 
 button {
-    padding: 5px 10px;
-    margin: 0 5px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: #0984e3;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #0652dd;
+    transform: translateY(-2px);
 }
 
 ul {
     list-style-type: none;
+    padding: 0;
 }
 
+/* ... Giữ nguyên phần đầu như cũ ... */
+
 li {
+    display: flex;
+    align-items: center;
+    padding: 15px;
     margin: 10px 0;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+li:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+li input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+li .task-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+li .task-text {
+    margin-right: 10px;
+    color: #2d3436;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 50%;
+    /* Giảm để nhường chỗ deadline */
+}
+
+li .task-text.completed {
+    text-decoration: line-through;
+    color: #636e72;
+}
+
+li .deadline {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin-left: auto;
+    /* Đẩy deadline sang phải */
+    margin-right: 15px;
+    /* Khoảng cách với nút Sửa */
+    white-space: nowrap;
+}
+
+/* ... Giữ nguyên phần button như cũ ... */
+
+li button:nth-child(2) {
+    /* Nút Sửa */
+    background-color: #00b894;
+}
+
+li button:nth-child(2):hover {
+    background-color: #009e78;
+}
+
+li button:nth-child(3) {
+    /* Nút Xóa */
+    background-color: #e17055;
+}
+
+li button:nth-child(3):hover {
+    background-color: #c6533b;
 }
