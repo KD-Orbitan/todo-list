@@ -8,14 +8,28 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1><i class="fas fa-tasks"></i> Todo List</h1>
-        <div class="input-group">
-            <input type="text" id="taskInput" placeholder="Nhập nhiệm vụ mới...">
-            <input type="date" id="deadlineInput">
-            <button onclick="addTask()"><i class="fas fa-plus"></i> Thêm</button>
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li class="active" data-filter="today">Today</li>
+            <li data-filter="upcoming">Upcoming</li>
+            <li data-filter="completed">Completed</li>
+        </ul>
+    </div>
+    <div class="main-content">
+        <button id="toggleSidebar"><i class="fas fa-bars"></i></button>
+        <div class="container">
+            <h1><i class="fas fa-tasks"></i> Todo List</h1>
+            <div class="input-group">
+                <label for="titleInput">Tiêu đề:</label>
+                <input type="text" id="titleInput" placeholder="Tiêu đề nhiệm vụ...">
+                <label for="descInput">Mô tả:</label>
+                <textarea id="descInput" placeholder="Mô tả nhiệm vụ..."></textarea>
+                <label for="deadlineInput">Deadline:</label>
+                <input type="date" id="deadlineInput">
+                <button onclick="addTask()"><i class="fas fa-plus"></i> Thêm</button>
+            </div>
+            <ul id="taskList"></ul>
         </div>
-        <ul id="taskList"></ul>
     </div>
     <script src="script.js"></script>
 </body>

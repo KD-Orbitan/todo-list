@@ -17,11 +17,18 @@ app.get('/tasks', (req, res) => {
 });
 
 app.post('/tasks', (req, res) => {
-    const taskText = req.body.task;
-    if (!taskText) {
-        return res.status(400).json({ error: 'Vui lòng nhập nội dung nhiệm vụ' });
+    const title = req.body.title;
+    if (!title) {
+        return res.status(400).json({ error: 'Vui lòng nhập tiêu đề nhiệm vụ' });
     }
-    const task = { id: Date.now(), text: taskText, deadline: req.body.deadline || '', completed: req.body.completed || false };
+    const task = {
+        id: Date.now(),
+        title,
+        desc: req.body.desc || '',
+        deadline: req.body.deadline || '',
+        completed: req.body.completed || false,
+        completedAt: req.body.completedAt || null
+    };
     tasks.push(task);
     saveTasks();
     res.json(tasks);
@@ -38,14 +45,16 @@ app.put('/tasks/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const task = tasks.find(t => t.id === id);
     if (!task) return res.status(404).json({ error: 'Không tìm thấy nhiệm vụ' });
-    if (req.body.task && !req.body.task.trim()) {
-        return res.status(400).json({ error: 'Vui lòng nhập nội dung mới' });
+    if (req.body.title && !req.body.title.trim()) {
+        return res.status(400).json({ error: 'Vui lòng nhập tiêu đề mới' });
     }
     tasks = tasks.map(t => t.id === id ? {
         ...t,
-        text: req.body.task !== undefined ? req.body.task : t.text,
+        title: req.body.title !== undefined ? req.body.title : t.title,
+        desc: req.body.desc !== undefined ? req.body.desc : t.desc,
         deadline: req.body.deadline !== undefined ? req.body.deadline : t.deadline,
-        completed: req.body.completed !== undefined ? req.body.completed : t.completed
+        completed: req.body.completed !== undefined ? req.body.completed : t.completed,
+        completedAt: req.body.completedAt !== undefined ? req.body.completedAt : t.completedAt
     } : t);
     saveTasks();
     res.json(tasks);
