@@ -2,47 +2,27 @@ let tasks = [];
 let currentFilter = 'today';
 
 function addTask() {
-    const titleInput = document.getElementById('titleInput');
-    const descInput = document.getElementById('descInput');
-    const deadlineInput = document.getElementById('deadlineInput');
-    const title = titleInput.value.trim();
-    const desc = descInput.value.trim();
-    const deadline = deadlineInput.value;
-    const today = new Date().toISOString().split('T')[0];
+    const title = document.getElementById('titleInput').value.trim();
+    const desc = document.getElementById('descInput').value.trim();
+    const deadline = document.getElementById('deadlineInput').value;
+    const today = new Date().toISOString().split('T')[0]; // Chuẩn hóa ngày hiện tại
+    if (!title) { alert('Vui lòng nhập tiêu đề nhiệm vụ!'); return; }
+    if (deadline && deadline < today) { alert('Deadline không thể là ngày trong quá khứ!'); return; }
 
-    if (!title) {
-        alert('Vui lòng nhập tiêu đề nhiệm vụ!');
-        return;
-    }
-    if (deadline && deadline < today) {
-        alert('Deadline không thể là ngày trong quá khứ!');
-        return;
-    }
-
-    fetch('/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, desc, deadline, completed: false, completedAt: null })
-    })
-        .then(response => {
-            if (!response.ok) throw new Error('Lỗi từ server');
-            return response.json();
-        })
-        .then(data => {
-            tasks = data;
-            displayTasks();
-        })
+    fetch('/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, desc, deadline, completed: false, completedAt: null }) })
+        .then(response => { if (!response.ok) throw new Error('Lỗi từ server'); return response.json(); })
+        .then(data => { tasks = data; displayTasks(); })
         .catch(error => alert('Có lỗi xảy ra: ' + error.message));
-    titleInput.value = '';
-    descInput.value = '';
-    deadlineInput.value = '';
+    document.getElementById('titleInput').value = '';
+    document.getElementById('descInput').value = '';
+    document.getElementById('deadlineInput').value = '';
 }
 
 function displayTasks() {
     const taskList = document.getElementById('taskList');
     const inputGroup = document.querySelector('.input-group');
     taskList.innerHTML = '';
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0]; // Chuẩn hóa ngày hiện tại
     let filteredTasks = [];
 
     if (currentFilter === 'today') {
@@ -75,20 +55,14 @@ function displayTasks() {
 }
 
 function toggleTask(id, completed) {
-    const completedAt = completed ? new Date().toISOString() : null;
+    const completedAt = completed ? new Date().toISOString().replace('T', ' ').substring(0, 19) : null;
     fetch(`/tasks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed, completedAt })
     })
-        .then(response => {
-            if (!response.ok) throw new Error('Lỗi từ server');
-            return response.json();
-        })
-        .then(data => {
-            tasks = data;
-            displayTasks();
-        })
+        .then(response => { if (!response.ok) throw new Error('Lỗi từ server'); return response.json(); })
+        .then(data => { tasks = data; displayTasks(); })
         .catch(error => alert('Có lỗi xảy ra: ' + error.message));
 }
 
