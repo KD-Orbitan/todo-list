@@ -12,7 +12,7 @@ const dbConfig = {
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
     ssl: {
-        ca: process.env.DATABASE_CA_CERT // Lấy từ biến môi trường
+        ca: fs.readFileSync(path.join(__dirname, 'ca.pem'))
     }
 };
 
