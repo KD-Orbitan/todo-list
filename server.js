@@ -3,15 +3,17 @@ const path = require('path');
 const mysql = require('mysql2/promise');
 const app = express();
 const port = process.env.PORT || 3000;
-
+const fs = require('fs');
 // Kết nối Aiven MySQL qua biến môi trường
 const dbConfig = {
-    host: process.env.DATABASE_HOST || 'mysql-todo-mysql-yourorg.aivencloud.com',
-    port: process.env.DATABASE_PORT || 3306,
-    user: process.env.DATABASE_USERNAME || 'avnadmin',
-    password: process.env.DATABASE_PASSWORD || 'your_password',
-    database: process.env.DATABASE_NAME || 'defaultdb',
-    ssl: { rejectUnauthorized: true } // Aiven yêu cầu SSL
+    host: process.env.DATABASE_HOST,
+    port: process.env.DATABASE_PORT,
+    user: process.env.DATABASE_USERNAME,
+    password: process.env.DATABASE_PASSWORD,
+    database: process.env.DATABASE_NAME,
+    ssl: {
+        ca: process.env.DATABASE_CA_CERT // Lấy từ biến môi trường
+    }
 };
 
 app.use(express.json());
