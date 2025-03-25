@@ -1,63 +1,102 @@
 const express = require('express');
-const fs = require('fs');
+const path = require('path');
+const mysql = require('mysql2/promise');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+
+// Kết nối Aiven MySQL qua biến môi trường
+const dbConfig = {
+    host: process.env.DATABASE_HOST || 'mysql-todo-mysql-yourorg.aivencloud.com',
+    port: process.env.DATABASE_PORT || 3306,
+    user: process.env.DATABASE_USERNAME || 'avnadmin',
+    password: process.env.DATABASE_PASSWORD || 'your_password',
+    database: process.env.DATABASE_NAME || 'defaultdb',
+    ssl: { rejectUnauthorized: true } // Aiven yêu cầu SSL
+};
 
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
-let tasks = fs.existsSync('tasks.json') ? JSON.parse(fs.readFileSync('tasks.json')) : [];
-
-function saveTasks() {
-    fs.writeFileSync('tasks.json', JSON.stringify(tasks));
-}
-
-app.get('/tasks', (req, res) => {
-    res.json(tasks);
-});
-
-app.post('/tasks', (req, res) => {
-    const title = req.body.title;
-    if (!title) {
-        return res.status(400).json({ error: 'Vui lòng nhập tiêu đề nhiệm vụ' });
+app.get('/tasks', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        const [rows] = await connection.execute('SELECT * FROM tasks');
+        await connection.end();
+        res.json(rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Lỗi server' });
     }
-    const task = {
-        id: Date.now(),
-        title,
-        desc: req.body.desc || '',
-        deadline: req.body.deadline || '',
-        completed: req.body.completed || false,
-        completedAt: req.body.completedAt || null
-    };
-    tasks.push(task);
-    saveTasks();
-    res.json(tasks);
 });
 
-app.delete('/tasks/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    tasks = tasks.filter(task => task.id !== id);
-    saveTasks();
-    res.json(tasks);
-});
-
-app.put('/tasks/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const task = tasks.find(t => t.id === id);
-    if (!task) return res.status(404).json({ error: 'Không tìm thấy nhiệm vụ' });
-    if (req.body.title && !req.body.title.trim()) {
-        return res.status(400).json({ error: 'Vui lòng nhập tiêu đề mới' });
+app.post('/tasks', async (req, res) => {
+    const { title, desc, deadline, completed, completedAt } = req.body;
+    if (!title) return res.status(400).json({ error: 'Vui lòng nhập tiêu đề' });
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        await connection.execute(
+            'INSERT INTO tasks (id, title, `desc`, deadline, completed, completedAt) VALUES (?, ?, ?, ?, ?, ?)',
+            [Date.now(), title, desc || '', deadline || null, completed || false, completedAt || null]
+        );
+        const [rows] = await connection.execute('SELECT * FROM tasks');
+        await connection.end();
+        res.json(rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Lỗi server' });
     }
-    tasks = tasks.map(t => t.id === id ? {
-        ...t,
-        title: req.body.title !== undefined ? req.body.title : t.title,
-        desc: req.body.desc !== undefined ? req.body.desc : t.desc,
-        deadline: req.body.deadline !== undefined ? req.body.deadline : t.deadline,
-        completed: req.body.completed !== undefined ? req.body.completed : t.completed,
-        completedAt: req.body.completedAt !== undefined ? req.body.completedAt : t.completedAt
-    } : t);
-    saveTasks();
-    res.json(tasks);
+});
+
+app.delete('/tasks/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        await connection.execute('DELETE FROM tasks WHERE id = ?', [id]);
+        const [rows] = await connection.execute('SELECT * FROM tasks');
+        await connection.end();
+        res.json(rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+app.put('/tasks/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { title, desc, deadline, completed, completedAt } = req.body;
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        const [existing] = await connection.execute('SELECT * FROM tasks WHERE id = ?', [id]);
+        if (!existing.length) {
+            await connection.end();
+            return res.status(404).json({ error: 'Không tìm thấy nhiệm vụ' });
+        }
+        if (title && !title.trim()) {
+            await connection.end();
+            return res.status(400).json({ error: 'Vui lòng nhập tiêu đề mới' });
+        }
+        await connection.execute(
+            'UPDATE tasks SET title = ?, `desc` = ?, deadline = ?, completed = ?, completedAt = ? WHERE id = ?',
+            [
+                title !== undefined ? title : existing[0].title,
+                desc !== undefined ? desc : existing[0].desc,
+                deadline !== undefined ? deadline : existing[0].deadline,
+                completed !== undefined ? completed : existing[0].completed,
+                completedAt !== undefined ? completedAt : existing[0].completedAt,
+                id
+            ]
+        );
+        const [rows] = await connection.execute('SELECT * FROM tasks');
+        await connection.end();
+        res.json(rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Lỗi server' });
+    }
+});
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(port, () => {
